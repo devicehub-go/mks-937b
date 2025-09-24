@@ -216,3 +216,14 @@ func (e *ErrInvalidEmissionCurrent) Error() string {
 		e.Got,
 	)
 }
+
+type ErrInvalidGas struct { Got string }
+func NewErrInvalidGas(got string) *ErrInvalidGas {
+	return &ErrInvalidGas{Got: got}
+}
+func (e *ErrInvalidGas) Error() string {
+	return fmt.Sprintf(
+		"The emission current must be Nitrogen, Argon, Helium or Custom, got %s",
+		e.Got,
+	)
+}

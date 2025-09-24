@@ -12,6 +12,20 @@ import (
 	"strconv"
 )
 
+var SensorStatus = map[string]string{
+	"W": "Wait",
+	"O": "Off",
+	"G": "Good",
+	"P": "Protect",
+	"D": "Degas",
+	"C": "Control",
+	"R": "Rear panel control off",
+	"F": "Hot Cathode filament fault",
+	"N": "No sensor",
+	"H": "High",
+	"L": "Low",
+}
+
 /*
 Gets protection set point value for sensor on a
 target channel that must be 1, 3 or 5
@@ -290,7 +304,7 @@ func (m *MKS937B) SetEmissionCurrent(channel int, current string) error {
 Gets the gas correction factor for an HC sensor on 
 a desired channel
 */
-func (m *MKS937B) GetGasCorrection(channel int) (float64, error) {
+func (m *MKS937B) GetHCGasCorrection(channel int) (float64, error) {
 	valid := []int{1, 3, 5}
 	if !slices.Contains(valid, channel) {
 		return 0, NewErrInvalidChannelControl(channel)
@@ -309,7 +323,7 @@ a desired channel
 
 Valid range for factor is from 0.1 to 50.0
 */
-func (m *MKS937B) SetGasCorrection(channel int, factor float64) error {
+func (m *MKS937B) SetHCGasCorrection(channel int, factor float64) error {
 	valid := []int{1, 3, 5}
 	if !slices.Contains(valid, channel) {
 		return NewErrInvalidChannelControl(channel)
@@ -318,6 +332,41 @@ func (m *MKS937B) SetGasCorrection(channel int, factor float64) error {
 		return NewErrInvalidRangeExp(0.1, 50, factor)
 	}
 	command := fmt.Sprintf("GC%d", channel)
+	return m.Set(command, fmt.Sprintf("%.1f", factor))
+}
+
+/*
+Gets the gas correction factor for an CC sensor on 
+a desired channel
+*/
+func (m *MKS937B) GetCCGasCorrection(channel int) (float64, error) {
+	valid := []int{1, 3, 5}
+	if !slices.Contains(valid, channel) {
+		return 0, NewErrInvalidChannelControl(channel)
+	}
+	command := fmt.Sprintf("UC%d", channel)
+	response, err := m.Query(command)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseFloat(response, 64)
+}
+
+/*
+Sets the gas correction factor for an UC sensor on
+a desired channel
+
+Valid range for factor is from 0.1 to 10.0
+*/
+func (m *MKS937B) SetUCGasCorrection(channel int, factor float64) error {
+	valid := []int{1, 3, 5}
+	if !slices.Contains(valid, channel) {
+		return NewErrInvalidChannelControl(channel)
+	}
+	if factor < 0.1 || 10.0 < factor {
+		return NewErrInvalidRangeExp(0.1, 10, factor)
+	}
+	command := fmt.Sprintf("UC%d", channel)
 	return m.Set(command, fmt.Sprintf("%.1f", factor))
 }
 
@@ -448,4 +497,54 @@ func (m *MKS937B) SetDegasTime(channel int, time int) error {
 	
 	command := fmt.Sprintf("DGT%d", channel)
 	return m.Set(command, fmt.Sprint(time))
+}
+
+/*
+Gets the gas type for HC/CC on a desired channel
+*/
+func (m *MKS937B) GetGasType(channel int) (string, error) {
+	valid := []int{1, 3, 5}
+	if !slices.Contains(valid, channel) {
+		return "", NewErrInvalidChannelControl(channel)
+	}
+	command := fmt.Sprintf("GT%d", channel)
+	return m.Query(command)
+}
+
+/*
+Sets the gas type for HC/CC on a desired channel
+
+Valid values for gas are Nitrogen, Argon, Helium, or Custom.
+When Custom is selected, one can select GC value other than N2,
+Ar or He.
+*/
+func (m *MKS937B) SetGasType(channel int, gas string) error {
+	validChannels := []int{1, 3, 5}
+	validGas := []string{"Nitrogen", "Argon", "Helium", "Custom"}
+
+	if !slices.Contains(validChannels, channel) {
+		return NewErrInvalidChannelControl(channel)
+	}
+	if !slices.Contains(validGas, gas) {
+		return NewErrInvalidGas(gas)
+	}
+
+	command := fmt.Sprintf("GT%d", channel)
+	return m.Set(command, gas)
+}
+
+/*
+Gets Hot Cathode sensor status query
+*/
+func (m *MKS937B) GetSensorStatus(channel int) (string, error) {
+	valid := []int{1, 3, 5}
+	if !slices.Contains(valid, channel) {
+		return "", NewErrInvalidChannelControl(channel)
+	}
+	command := fmt.Sprintf("T%d", channel)
+	response, err := m.Query(command)
+	if err != nil {
+		return "", err
+	}
+	return SensorStatus[response], nil
 }

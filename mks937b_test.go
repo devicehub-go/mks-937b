@@ -41,6 +41,7 @@ func TestReadPressure(t *testing.T) {
 	}
 
 	fmt.Println(response)
+	fmt.Println(mks.GetSensorStatus(1))
 }
 
 func TestSystemCommands(t *testing.T) {
