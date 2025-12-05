@@ -13,21 +13,21 @@ import (
 )
 
 type PressureReading struct {
-	value float64
-	status string
+	Value  float64
+	Status string
 }
 
 var stringResponse = map[string]string{
-	"LO<": "Pressure lower than minimum",
-	"ATM": "PR when pressure is lower than 450 Torr",
-	"OFF": "Cold cathode HV if OFF, or HC/PR/CP power if OFF",
-	"WAIT": "CC or HC startup delay",
-	"LowEmis": "HC OFF due to lowe emission",
-	"CTRL_OFF": "CC or HC if OFF in controlled state",
-	"PROT_OFF": "CC or HC if OFF in protected state",
-	"MISCONN": "Sensor improperly connected, or broken filament (PR, CP only)",
-	"NOGAUGE": "Controller unable to determine sensor connection",
-	"NO_GAUGE": "Controller unable to determine sensor connection",
+	"LO<":           "Pressure lower than minimum",
+	"ATM":           "PR when pressure is lower than 450 Torr",
+	"OFF":           "Cold cathode HV if OFF, or HC/PR/CP power if OFF",
+	"WAIT":          "CC or HC startup delay",
+	"LowEmis":       "HC OFF due to lowe emission",
+	"CTRL_OFF":      "CC or HC if OFF in controlled state",
+	"PROT_OFF":      "CC or HC if OFF in protected state",
+	"MISCONN":       "Sensor improperly connected, or broken filament (PR, CP only)",
+	"NOGAUGE":       "Controller unable to determine sensor connection",
+	"NO_GAUGE":      "Controller unable to determine sensor connection",
 	"COMB_DISABLED": "Combination disabled",
 }
 
@@ -39,7 +39,7 @@ func parsePressure(reading string) (PressureReading, error) {
 
 	for key, value := range stringResponse {
 		if strings.Contains(reading, key) {
-			pressure.status = value
+			pressure.Status = value
 			return pressure, nil
 		}
 	}
@@ -48,8 +48,8 @@ func parsePressure(reading string) (PressureReading, error) {
 		return pressure, err
 	}
 
-	pressure.value = value
-	pressure.status = "OK"
+	pressure.Value = value
+	pressure.Status = "OK"
 	return pressure, nil
 }
 
@@ -59,7 +59,7 @@ Reads the pressure of a target channel
 func (m *MKS937B) GetPressure(channel int) (PressureReading, error) {
 	var pressure PressureReading
 
-	if 1 < channel || channel > 6 {
+	if 1 < channel && channel > 6 {
 		return pressure, NewErrInvalidChannel(1, 6, channel)
 	}
 	command := fmt.Sprintf("PR%d", channel)
