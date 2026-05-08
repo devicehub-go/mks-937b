@@ -16,7 +16,7 @@ import (
 func TestReadPressure(t *testing.T) {
 	fmt.Println("Initialing read pressure example...")
 
-	options := unicomm.UnicommOptions{
+	options := unicomm.Options{
 		Protocol: unicomm.Serial,
 		Serial: unicommserial.SerialOptions{
 			PortName:     "COM4",
@@ -51,7 +51,7 @@ func TestReadPressure(t *testing.T) {
 func TestSystemCommands(t *testing.T) {
 	fmt.Println("Initializing system commands test...")
 
-	options := unicomm.UnicommOptions{
+	options := unicomm.Options{
 		Protocol: unicomm.TCP,
 		TCP: unicommtcp.TCPOptions{
 			Host:         "10.0.4.135",

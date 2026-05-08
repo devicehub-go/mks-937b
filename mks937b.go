@@ -18,9 +18,9 @@ with the device through the selected protocol.
 For MKS 937B some usual character format are: 8 data bits,
 1 stop bit, and no parity. Baudrate by default is 9600
 */
-func New(address int, options unicomm.UnicommOptions) *protocol.MKS937B {
+func New(address int, options unicomm.Options) *protocol.MKS937B {
 	return &protocol.MKS937B{
 		Communication: unicomm.New(options),
-		Address: address,
+		Address:       address,
 	}
 }
