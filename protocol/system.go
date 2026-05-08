@@ -10,11 +10,10 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 )
 
-/*
-Gets the controller address (1 to 254)
-*/
+// Gets the controller address (1 to 254)
 func (m *MKS937B) GetAddress() (int, error) {
 	response, err := m.Query("AD")
 	if err != nil {
@@ -23,9 +22,7 @@ func (m *MKS937B) GetAddress() (int, error) {
 	return strconv.Atoi(response)
 }
 
-/*
-Sets the controller address
-*/
+// Sets the controller address
 func (m *MKS937B) SetAddress(address int) error {
 	if address < 1 || 254 < address {
 		return NewErrInvalidAddress(address)
@@ -33,9 +30,7 @@ func (m *MKS937B) SetAddress(address int) error {
 	return m.Set("AD", fmt.Sprintf("%03d", address))
 }
 
-/*
-Gets the controller baud rate
-*/
+// Gets the controller baud rate
 func (m *MKS937B) GetBaudRate() (int, error) {
 	response, err := m.Query("BR")
 	if err != nil {
@@ -44,10 +39,9 @@ func (m *MKS937B) GetBaudRate() (int, error) {
 	return strconv.Atoi(response)
 }
 
-/*
-Sets the controller baud rate (valid values include 9600, 19200,
-38400, 57600, 115200)
-*/
+// Sets the controller baud rate (valid values include 9600, 19200,
+// 8400, 57600, 115200)
+
 func (m *MKS937B) SetBaudRate(baudrate int) error {
 	valid := []int{9600, 19200, 38400, 57600, 115200}
 	if !slices.Contains(valid, baudrate) {
@@ -56,9 +50,7 @@ func (m *MKS937B) SetBaudRate(baudrate int) error {
 	return m.Set("BR", fmt.Sprint(baudrate))
 }
 
-/*
-Gets the controller parity
-*/
+// Gets the controller parity
 func (m *MKS937B) SetParity(parity string) error {
 	valid := []string{"NONE", "EVEN", "ODD"}
 	if !slices.Contains(valid, parity) {
@@ -67,9 +59,7 @@ func (m *MKS937B) SetParity(parity string) error {
 	return m.Set("PAR", parity)
 }
 
-/*
-Gets delay time of RS485 communication in milliseconds
-*/
+// Gets delay time of RS485 communication in milliseconds
 func (m *MKS937B) GetDelayTime() (int, error) {
 	response, err := m.Query("DLY")
 	if err != nil {
@@ -78,29 +68,46 @@ func (m *MKS937B) GetDelayTime() (int, error) {
 	return strconv.Atoi(response)
 }
 
-/*
-Sets the delay time of RS485 communication in milliseconds.
-For a reliable communication the time must be greater than 1 ms.
-Default is 8 ms.
-*/
+// Sets the delay time of RS485 communication in milliseconds.
+// For a reliable communication the time must be greater than 1 ms.
+// Default is 8 ms.
 func (m *MKS937B) SetDelayTime(delay int) error {
 	return m.Set("DLY", fmt.Sprint(delay))
 }
 
-/*
-Gets the pressure unit
-*/
+// Gets the pressure unit
 func (m *MKS937B) GetPressureUnit() (string, error) {
 	return m.Query("U")
 }
 
-/*
-Sets the pressure unit (Torr, MBAR, PASCAL, Micron)
-*/
+// Sets the pressure unit (Torr, MBAR, PASCAL, Micron)
 func (m *MKS937B) SetPressureUnit(unit string) error {
 	valid := []string{"Torr", "MBAR", "PASCAL", "Micron"}
 	if !slices.Contains(valid, unit) {
 		return NewErrInvalidUnit(unit)
 	}
 	return m.Set("U", unit)
+}
+
+// Gets the firmware version
+func (m *MKS937B) GetFirmwareVersion() (string, error) {
+	var sb strings.Builder
+
+	slots := []string{"Slot A", "Slot B", "Slot C", "AIO", "COMM", "Main"}
+	for i := range 6 {
+		response, err := m.Query(fmt.Sprintf("FV%d", i+1))
+		if err != nil {
+			return "", err
+		}
+		sb.WriteString(slots[i] + ": " + response)
+		if i < 5 {
+			sb.WriteString(" | ")
+		}
+	}
+	return sb.String(), nil
+}
+
+// Gets the serial number of the unit
+func (m *MKS937B) GetSerialNumber() (string, error) {
+	return m.Query("SN")
 }

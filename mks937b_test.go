@@ -8,19 +8,24 @@ import (
 
 	mks937b "github.com/devicehub-go/mks-937b"
 	"github.com/devicehub-go/unicomm"
+	"github.com/devicehub-go/unicomm/protocol/unicommserial"
 	"github.com/devicehub-go/unicomm/protocol/unicommtcp"
+	"go.bug.st/serial"
 )
 
 func TestReadPressure(t *testing.T) {
 	fmt.Println("Initialing read pressure example...")
 
 	options := unicomm.UnicommOptions{
-		Protocol: unicomm.TCP,
-		TCP: unicommtcp.TCPOptions{
-			Host: "10.0.4.135",
-			Port: 4001,
-			ReadTimeout: 500 * time.Millisecond,
-			WriteTimeout: 500 * time.Millisecond,
+		Protocol: unicomm.Serial,
+		Serial: unicommserial.SerialOptions{
+			PortName:     "COM4",
+			BaudRate:     115200,
+			Parity:       serial.NoParity,
+			DataBits:     8,
+			StopBits:     serial.OneStopBit,
+			ReadTimeout:  1000 * time.Millisecond,
+			WriteTimeout: 1000 * time.Millisecond,
 		},
 		Delimiter: "\r",
 	}
@@ -31,9 +36,8 @@ func TestReadPressure(t *testing.T) {
 	}
 	defer mks.Disconnect()
 
-	if err := mks.SetPowerStatus(1, false); err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println(mks.GetFirmwareVersion())
+	fmt.Println(mks.GetSerialNumber())
 
 	response, err := mks.GetPressure(1)
 	if err != nil {
@@ -50,9 +54,9 @@ func TestSystemCommands(t *testing.T) {
 	options := unicomm.UnicommOptions{
 		Protocol: unicomm.TCP,
 		TCP: unicommtcp.TCPOptions{
-			Host: "10.0.4.135",
-			Port: 4001,
-			ReadTimeout: 500 * time.Millisecond,
+			Host:         "10.0.4.135",
+			Port:         4001,
+			ReadTimeout:  500 * time.Millisecond,
 			WriteTimeout: 500 * time.Millisecond,
 		},
 		Delimiter: "\r",
